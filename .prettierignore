@@ -1,0 +1,11 @@
+.next
+node_modules
+coverage
+playwright-report
+test-results
+build
+
+# vendor-generated agent skill docs (from `prisma init`)
+.agents
+.claude/skills
+.windsurf/skills
