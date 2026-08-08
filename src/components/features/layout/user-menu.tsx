@@ -2,7 +2,9 @@
 
 import { LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,31 +13,50 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSession } from "@/lib/auth-client";
+import { logoutUser } from "@/services/auth";
 
-// Placeholder user until Phase 4 (Authentication) wires up a real session.
-const placeholderUser = {
-  name: "Guest",
-  initials: "G",
-};
+function getInitials(name: string) {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((part) => part[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
 
 export function UserMenu() {
+  const router = useRouter();
+  const { data } = useSession();
+  const user = data?.user;
+
+  async function handleLogout() {
+    await logoutUser();
+    router.push("/login");
+    router.refresh();
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             aria-label="Open user menu"
-            className="rounded-full transition-soft focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          />
+            className="h-auto rounded-full p-0 hover:bg-transparent"
+          >
+            <Avatar>
+              {user?.image && <AvatarImage src={user.image} alt="" />}
+              <AvatarFallback>{user ? getInitials(user.name) : "?"}</AvatarFallback>
+            </Avatar>
+          </Button>
         }
-      >
-        <Avatar>
-          <AvatarFallback>{placeholderUser.initials}</AvatarFallback>
-        </Avatar>
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{placeholderUser.name}</DropdownMenuLabel>
+        <DropdownMenuLabel>{user?.name ?? "Account"}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/settings" />}>
           <UserIcon />
@@ -46,7 +67,7 @@ export function UserMenu() {
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" disabled>
+        <DropdownMenuItem variant="destructive" onClick={handleLogout}>
           <LogOutIcon />
           Log out
         </DropdownMenuItem>
