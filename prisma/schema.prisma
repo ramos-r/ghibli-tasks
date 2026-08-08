@@ -13,17 +13,20 @@ datasource db {
 }
 
 model User {
-  id              String    @id
+  id              String     @id
   name            String
   email           String
-  emailVerified   Boolean   @default(false)
+  emailVerified   Boolean    @default(false)
   image           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
   username        String?
   displayUsername String?
   sessions        Session[]
   accounts        Account[]
+  tasks           Task[]
+  categories      Category[]
+  tags            Tag[]
 
   @@unique([email])
   @@unique([username])
@@ -76,4 +79,123 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// --- App domain models (Phase 5) ---
+// Better Auth's own tables above (user/session/account/verification) keep
+// its generator's camelCase column convention. These app-owned models follow
+// the README's snake_case column convention via @map/@@map.
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@map("priority")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  color     String
+  icon      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("tags")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  priority    Priority  @default(MEDIUM)
+  completed   Boolean   @default(false)
+  completedAt DateTime? @map("completed_at")
+  archived    Boolean   @default(false)
+  pinned      Boolean   @default(false)
+  dueDate     DateTime? @map("due_date")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  tags        Tag[]
+  subtasks    Subtask[]
+  reminders   Reminder[]
+  attachments Attachment[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model Subtask {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  taskId String @map("task_id")
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("subtasks")
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  remindAt  DateTime @map("remind_at")
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  taskId String @map("task_id")
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("reminders")
+}
+
+// Schema only for now — file upload UI/storage is an explicitly deferred
+// future feature (see docs/PROJECT_BRIEF.md), not built in this phase.
+model Attachment {
+  id        String   @id @default(cuid())
+  fileName  String   @map("file_name")
+  fileUrl   String   @map("file_url")
+  mimeType  String?  @map("mime_type")
+  fileSize  Int?     @map("file_size")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  taskId String @map("task_id")
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("attachments")
 }
