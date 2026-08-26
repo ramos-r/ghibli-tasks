@@ -14,8 +14,13 @@ export function Navbar() {
           className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
           aria-hidden="true"
         />
-        {/* Search is implemented in Phase 13 — visual placeholder for now. */}
-        <Input placeholder="Search tasks…" aria-label="Search tasks" className="pl-8" disabled />
+        {/* Global search is implemented in Phase 13 — visual placeholder for now. */}
+        <Input
+          placeholder="Search tasks…"
+          aria-label="Global search (coming soon)"
+          className="pl-8"
+          disabled
+        />
       </div>
 
       <div className="ml-auto flex items-center gap-1.5">
