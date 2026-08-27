@@ -7,6 +7,7 @@ export const createTaskSchema = z.object({
   description: z.string().max(2000, "Description is too long").optional(),
   priority: z.enum(taskPriorities).default("MEDIUM"),
   dueDate: z.iso.date().optional().or(z.literal("")),
+  categoryId: z.string().optional().or(z.literal("")),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

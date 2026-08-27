@@ -13,12 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Category } from "@/generated/prisma/client";
+import { categoryIconComponents } from "@/lib/category-icons";
 import {
   taskSortOptions,
   taskStatusFilters,
   type TaskSortOption,
   type TaskStatusFilter,
 } from "@/lib/validations/task";
+
+const ANY_CATEGORY = "any";
 
 const sortLabels: Record<TaskSortOption, string> = {
   newest: "Newest first",
@@ -42,7 +46,7 @@ const priorityLabels: Record<"any" | "LOW" | "MEDIUM" | "HIGH", string> = {
   HIGH: "High",
 };
 
-export function TaskFilters() {
+export function TaskFilters({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -137,7 +141,38 @@ export function TaskFilters() {
         </SelectContent>
       </Select>
 
+      {categories.length > 0 && (
+        <Select
+          value={searchParams.get("category") ?? ANY_CATEGORY}
+          onValueChange={(value) => updateParam("category", value === ANY_CATEGORY ? "" : value)}
+        >
+          <SelectTrigger aria-label="Filter by category">
+            <SelectValue>
+              {(value: string) =>
+                value === ANY_CATEGORY
+                  ? "Any category"
+                  : (categories.find((c) => c.id === value)?.name ?? "Any category")
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ANY_CATEGORY}>Any category</SelectItem>
+            {categories.map((category) => {
+              const Icon =
+                categoryIconComponents[category.icon as keyof typeof categoryIconComponents];
+              return (
+                <SelectItem key={category.id} value={category.id}>
+                  {Icon && <Icon className="size-4" style={{ color: category.color }} />}
+                  {category.name}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+      )}
+
       <TaskFormDialog
+        categories={categories}
         trigger={
           <Button className="ml-auto">
             <PlusIcon />
