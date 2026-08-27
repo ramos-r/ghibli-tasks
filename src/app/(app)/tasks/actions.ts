@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/session";
+import { createSubtaskSchema, updateSubtaskSchema } from "@/lib/validations/subtask";
 import { createTaskSchema, updateTaskSchema } from "@/lib/validations/task";
+import * as subtasksService from "@/services/subtasks";
 import * as tasksService from "@/services/tasks";
 
 export interface ActionResult<T = undefined> {
@@ -133,6 +135,82 @@ export async function duplicateTaskAction(id: string): Promise<ActionResult> {
 
     revalidatePath("/tasks");
     return { success: true, message: "Task duplicated." };
+  } catch (error) {
+    return toErrorResult(error);
+  }
+}
+
+export async function createSubtaskAction(input: unknown): Promise<ActionResult> {
+  try {
+    const user = await requireCurrentUser();
+    const parsed = createSubtaskSchema.safeParse(input);
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: parsed.error.issues[0]?.message ?? "Invalid subtask data.",
+      };
+    }
+
+    const created = await subtasksService.createSubtask(user.id, parsed.data);
+    if (!created) {
+      return { success: false, message: "Task not found." };
+    }
+
+    revalidatePath("/tasks");
+    return { success: true, message: "Subtask added." };
+  } catch (error) {
+    return toErrorResult(error);
+  }
+}
+
+export async function updateSubtaskAction(input: unknown): Promise<ActionResult> {
+  try {
+    const user = await requireCurrentUser();
+    const parsed = updateSubtaskSchema.safeParse(input);
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: parsed.error.issues[0]?.message ?? "Invalid subtask data.",
+      };
+    }
+
+    const updated = await subtasksService.updateSubtask(user.id, parsed.data);
+    if (!updated) {
+      return { success: false, message: "Subtask not found." };
+    }
+
+    revalidatePath("/tasks");
+    return { success: true, message: "Subtask updated." };
+  } catch (error) {
+    return toErrorResult(error);
+  }
+}
+
+export async function deleteSubtaskAction(id: string): Promise<ActionResult> {
+  try {
+    const user = await requireCurrentUser();
+    const deleted = await subtasksService.deleteSubtask(user.id, id);
+    if (!deleted) {
+      return { success: false, message: "Subtask not found." };
+    }
+
+    revalidatePath("/tasks");
+    return { success: true, message: "Subtask deleted." };
+  } catch (error) {
+    return toErrorResult(error);
+  }
+}
+
+export async function toggleSubtaskCompletedAction(id: string): Promise<ActionResult> {
+  try {
+    const user = await requireCurrentUser();
+    const updated = await subtasksService.toggleSubtaskCompleted(user.id, id);
+    if (!updated) {
+      return { success: false, message: "Subtask not found." };
+    }
+
+    revalidatePath("/tasks");
+    return { success: true, message: "" };
   } catch (error) {
     return toErrorResult(error);
   }
