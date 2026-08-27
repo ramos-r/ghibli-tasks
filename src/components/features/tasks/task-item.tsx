@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TaskFormDialog } from "@/components/features/tasks/task-form-dialog";
+import { TaskSubtasks } from "@/components/features/tasks/task-subtasks";
 import type { Category, Tag, Task } from "@/generated/prisma/client";
 import { categoryIconComponents } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
@@ -181,6 +182,7 @@ export function TaskItem({
           )}
           {task.archived && <Badge variant="outline">Archived</Badge>}
         </div>
+        <TaskSubtasks taskId={task.id} subtasks={task.subtasks} />
       </div>
 
       <DropdownMenu>

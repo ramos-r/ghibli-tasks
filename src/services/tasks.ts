@@ -16,9 +16,15 @@ export interface GetTasksOptions {
   sort?: TaskSortOption;
 }
 
-export type TaskWithRelations = Prisma.TaskGetPayload<{ include: { category: true; tags: true } }>;
+export type TaskWithRelations = Prisma.TaskGetPayload<{
+  include: { category: true; tags: true; subtasks: true };
+}>;
 
-const taskInclude = { category: true, tags: true } as const;
+const taskInclude = {
+  category: true,
+  tags: true,
+  subtasks: { orderBy: { order: "asc" } },
+} as const;
 
 function buildOrderBy(sort: TaskSortOption = "newest"): Prisma.TaskOrderByWithRelationInput[] {
   switch (sort) {
