@@ -23,14 +23,17 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import type { Task } from "@/generated/prisma/client";
+import type { Category } from "@/generated/prisma/client";
+import { categoryIconComponents } from "@/lib/category-icons";
 import { createTaskSchema, type CreateTaskInput } from "@/lib/validations/task";
+import type { TaskWithCategory } from "@/services/tasks";
 
 type FormValues = {
   title: string;
   description: string;
   priority: CreateTaskInput["priority"];
   dueDate: string;
+  categoryId: string;
 };
 
 const priorityLabels: Record<FormValues["priority"], string> = {
@@ -39,16 +42,27 @@ const priorityLabels: Record<FormValues["priority"], string> = {
   HIGH: "High",
 };
 
-function toFormValues(task?: Task): FormValues {
+const NO_CATEGORY = "none";
+
+function toFormValues(task?: TaskWithCategory): FormValues {
   return {
     title: task?.title ?? "",
     description: task?.description ?? "",
     priority: task?.priority ?? "MEDIUM",
     dueDate: task?.dueDate ? task.dueDate.toISOString().slice(0, 10) : "",
+    categoryId: task?.categoryId ?? NO_CATEGORY,
   };
 }
 
-export function TaskFormDialog({ task, trigger }: { task?: Task; trigger: ReactElement }) {
+export function TaskFormDialog({
+  task,
+  categories,
+  trigger,
+}: {
+  task?: TaskWithCategory;
+  categories: Category[];
+  trigger: ReactElement;
+}) {
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<FormValues>(() => toFormValues(task));
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
@@ -73,7 +87,12 @@ export function TaskFormDialog({ task, trigger }: { task?: Task; trigger: ReactE
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const parsed = createTaskSchema.safeParse(values);
+    const submission = {
+      ...values,
+      categoryId: values.categoryId === NO_CATEGORY ? "" : values.categoryId,
+    };
+
+    const parsed = createTaskSchema.safeParse(submission);
     if (!parsed.success) {
       const fieldErrors: Partial<Record<keyof FormValues, string>> = {};
       for (const issue of parsed.error.issues) {
@@ -176,6 +195,40 @@ export function TaskFormDialog({ task, trigger }: { task?: Task; trigger: ReactE
               />
               {errors.dueDate && <p className="text-xs text-destructive">{errors.dueDate}</p>}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="task-category" className="text-sm font-medium">
+              Category
+            </label>
+            <Select
+              value={values.categoryId}
+              onValueChange={(value) =>
+                setValues((prev) => ({ ...prev, categoryId: value ?? NO_CATEGORY }))
+              }
+            >
+              <SelectTrigger id="task-category" className="w-full">
+                <SelectValue>
+                  {(value: string) => {
+                    if (value === NO_CATEGORY) return "No category";
+                    return categories.find((c) => c.id === value)?.name ?? "No category";
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_CATEGORY}>No category</SelectItem>
+                {categories.map((category) => {
+                  const Icon =
+                    categoryIconComponents[category.icon as keyof typeof categoryIconComponents];
+                  return (
+                    <SelectItem key={category.id} value={category.id}>
+                      {Icon && <Icon className="size-4" style={{ color: category.color }} />}
+                      {category.name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter>

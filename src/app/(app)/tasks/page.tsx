@@ -8,12 +8,19 @@ import {
   type TaskSortOption,
   type TaskStatusFilter,
 } from "@/lib/validations/task";
+import { getCategories } from "@/services/categories";
 import { getTasks } from "@/services/tasks";
 
 const validPriorities = new Set<string>(Object.values(Priority));
 
 interface TasksPageProps {
-  searchParams: Promise<{ search?: string; status?: string; priority?: string; sort?: string }>;
+  searchParams: Promise<{
+    search?: string;
+    status?: string;
+    priority?: string;
+    category?: string;
+    sort?: string;
+  }>;
 }
 
 export default async function TasksPage({ searchParams }: TasksPageProps) {
@@ -31,12 +38,16 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     ? (params.priority as Priority)
     : undefined;
 
-  const tasks = await getTasks(user.id, {
-    search: params.search,
-    status,
-    priority,
-    sort,
-  });
+  const [tasks, categories] = await Promise.all([
+    getTasks(user.id, {
+      search: params.search,
+      status,
+      priority,
+      categoryId: params.category,
+      sort,
+    }),
+    getCategories(user.id),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,8 +55,8 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
         <h1 className="font-heading text-2xl font-semibold">Tasks</h1>
         <p className="text-muted-foreground">Everything on your list, in one calm place.</p>
       </div>
-      <TaskFilters />
-      <TaskList tasks={tasks} />
+      <TaskFilters categories={categories} />
+      <TaskList tasks={tasks} categories={categories} />
     </div>
   );
 }
