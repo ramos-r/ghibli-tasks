@@ -8,6 +8,7 @@ export const createTaskSchema = z.object({
   priority: z.enum(taskPriorities).default("MEDIUM"),
   dueDate: z.iso.date().optional().or(z.literal("")),
   categoryId: z.string().optional().or(z.literal("")),
+  tagIds: z.array(z.string()).optional(),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
