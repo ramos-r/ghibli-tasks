@@ -41,10 +41,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TaskFormDialog } from "@/components/features/tasks/task-form-dialog";
-import type { Category, Task } from "@/generated/prisma/client";
+import type { Category, Tag, Task } from "@/generated/prisma/client";
 import { categoryIconComponents } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
-import type { TaskWithCategory } from "@/services/tasks";
+import type { TaskWithRelations } from "@/services/tasks";
 
 const priorityLabels: Record<Task["priority"], string> = {
   LOW: "Low",
@@ -80,7 +80,15 @@ function CategoryBadge({ category }: { category: Category }) {
   );
 }
 
-export function TaskItem({ task, categories }: { task: TaskWithCategory; categories: Category[] }) {
+export function TaskItem({
+  task,
+  categories,
+  tags,
+}: {
+  task: TaskWithRelations;
+  categories: Category[];
+  tags: Tag[];
+}) {
   const [isPending, startTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -160,6 +168,11 @@ export function TaskItem({ task, categories }: { task: TaskWithCategory; categor
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Badge variant={priorityVariants[task.priority]}>{priorityLabels[task.priority]}</Badge>
           {task.category && <CategoryBadge category={task.category} />}
+          {task.tags.map((tag) => (
+            <Badge key={tag.id} variant="secondary">
+              {tag.name}
+            </Badge>
+          ))}
           {task.dueDate && (
             <Badge variant="outline">
               <CalendarIcon />
@@ -180,6 +193,7 @@ export function TaskItem({ task, categories }: { task: TaskWithCategory; categor
           <TaskFormDialog
             task={task}
             categories={categories}
+            tags={tags}
             trigger={
               <DropdownMenuItem closeOnClick={false}>
                 <PencilIcon />

@@ -1,14 +1,16 @@
 import { ClipboardListIcon } from "lucide-react";
 import { TaskItem } from "@/components/features/tasks/task-item";
-import type { Category } from "@/generated/prisma/client";
-import type { TaskWithCategory } from "@/services/tasks";
+import type { Category, Tag } from "@/generated/prisma/client";
+import type { TaskWithRelations } from "@/services/tasks";
 
 export function TaskList({
   tasks,
   categories,
+  tags,
 }: {
-  tasks: TaskWithCategory[];
+  tasks: TaskWithRelations[];
   categories: Category[];
+  tags: Tag[];
 }) {
   if (tasks.length === 0) {
     return (
@@ -26,7 +28,7 @@ export function TaskList({
     <ul className="flex flex-col gap-2">
       {tasks.map((task) => (
         <li key={task.id}>
-          <TaskItem task={task} categories={categories} />
+          <TaskItem task={task} categories={categories} tags={tags} />
         </li>
       ))}
     </ul>

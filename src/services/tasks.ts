@@ -12,10 +12,13 @@ export interface GetTasksOptions {
   status?: TaskStatusFilter;
   priority?: Priority;
   categoryId?: string;
+  tagIds?: string[];
   sort?: TaskSortOption;
 }
 
-export type TaskWithCategory = Prisma.TaskGetPayload<{ include: { category: true } }>;
+export type TaskWithRelations = Prisma.TaskGetPayload<{ include: { category: true; tags: true } }>;
+
+const taskInclude = { category: true, tags: true } as const;
 
 function buildOrderBy(sort: TaskSortOption = "newest"): Prisma.TaskOrderByWithRelationInput[] {
   switch (sort) {
@@ -34,7 +37,7 @@ function buildOrderBy(sort: TaskSortOption = "newest"): Prisma.TaskOrderByWithRe
 }
 
 export async function getTasks(userId: string, options: GetTasksOptions = {}) {
-  const { search, status = "active", priority, categoryId, sort } = options;
+  const { search, status = "active", priority, categoryId, tagIds, sort } = options;
 
   const where: Prisma.TaskWhereInput = {
     userId,
@@ -43,17 +46,22 @@ export async function getTasks(userId: string, options: GetTasksOptions = {}) {
     ...(status === "archived" && { archived: true }),
     ...(priority && { priority }),
     ...(categoryId && { categoryId }),
+    ...(tagIds &&
+      tagIds.length > 0 && {
+        tags: { some: { id: { in: tagIds } } },
+      }),
     ...(search && {
       OR: [
         { title: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
+        { tags: { some: { name: { contains: search, mode: "insensitive" } } } },
       ],
     }),
   };
 
   return prisma.task.findMany({
     where,
-    include: { category: true },
+    include: taskInclude,
     orderBy: buildOrderBy(sort),
   });
 }
@@ -68,7 +76,15 @@ async function resolveCategoryId(userId: string, categoryId: string | undefined)
   return category?.id ?? null;
 }
 
+async function resolveTagIds(userId: string, tagIds: string[] | undefined) {
+  if (!tagIds || tagIds.length === 0) return [];
+  const tags = await prisma.tag.findMany({ where: { id: { in: tagIds }, userId } });
+  return tags.map((tag) => tag.id);
+}
+
 export async function createTask(userId: string, input: CreateTaskInput) {
+  const tagIds = await resolveTagIds(userId, input.tagIds);
+
   return prisma.task.create({
     data: {
       title: input.title,
@@ -77,14 +93,17 @@ export async function createTask(userId: string, input: CreateTaskInput) {
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
       categoryId: await resolveCategoryId(userId, input.categoryId),
       userId,
+      tags: { connect: tagIds.map((id) => ({ id })) },
     },
-    include: { category: true },
+    include: taskInclude,
   });
 }
 
 export async function updateTask(userId: string, input: UpdateTaskInput) {
   const existing = await getTaskById(userId, input.id);
   if (!existing) return null;
+
+  const tagIds = await resolveTagIds(userId, input.tagIds);
 
   return prisma.task.update({
     where: { id: input.id },
@@ -94,8 +113,9 @@ export async function updateTask(userId: string, input: UpdateTaskInput) {
       priority: input.priority,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
       categoryId: await resolveCategoryId(userId, input.categoryId),
+      tags: { set: tagIds.map((id) => ({ id })) },
     },
-    include: { category: true },
+    include: taskInclude,
   });
 }
 
@@ -139,7 +159,10 @@ export async function toggleTaskPinned(userId: string, id: string) {
 }
 
 export async function duplicateTask(userId: string, id: string) {
-  const existing = await getTaskById(userId, id);
+  const existing = await prisma.task.findFirst({
+    where: { id, userId },
+    include: { tags: true },
+  });
   if (!existing) return null;
 
   return prisma.task.create({
@@ -150,7 +173,8 @@ export async function duplicateTask(userId: string, id: string) {
       dueDate: existing.dueDate,
       categoryId: existing.categoryId,
       userId,
+      tags: { connect: existing.tags.map((tag) => ({ id: tag.id })) },
     },
-    include: { category: true },
+    include: taskInclude,
   });
 }

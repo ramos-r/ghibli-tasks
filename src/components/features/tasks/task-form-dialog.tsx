@@ -3,6 +3,7 @@
 import { useState, type ReactElement } from "react";
 import { toast } from "sonner";
 import { createTaskAction, updateTaskAction } from "@/app/(app)/tasks/actions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,10 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import type { Category } from "@/generated/prisma/client";
+import type { Category, Tag } from "@/generated/prisma/client";
 import { categoryIconComponents } from "@/lib/category-icons";
 import { createTaskSchema, type CreateTaskInput } from "@/lib/validations/task";
-import type { TaskWithCategory } from "@/services/tasks";
+import { cn } from "@/lib/utils";
+import type { TaskWithRelations } from "@/services/tasks";
 
 type FormValues = {
   title: string;
@@ -34,6 +36,7 @@ type FormValues = {
   priority: CreateTaskInput["priority"];
   dueDate: string;
   categoryId: string;
+  tagIds: string[];
 };
 
 const priorityLabels: Record<FormValues["priority"], string> = {
@@ -44,23 +47,26 @@ const priorityLabels: Record<FormValues["priority"], string> = {
 
 const NO_CATEGORY = "none";
 
-function toFormValues(task?: TaskWithCategory): FormValues {
+function toFormValues(task?: TaskWithRelations): FormValues {
   return {
     title: task?.title ?? "",
     description: task?.description ?? "",
     priority: task?.priority ?? "MEDIUM",
     dueDate: task?.dueDate ? task.dueDate.toISOString().slice(0, 10) : "",
     categoryId: task?.categoryId ?? NO_CATEGORY,
+    tagIds: task?.tags.map((tag) => tag.id) ?? [],
   };
 }
 
 export function TaskFormDialog({
   task,
   categories,
+  tags,
   trigger,
 }: {
-  task?: TaskWithCategory;
+  task?: TaskWithRelations;
   categories: Category[];
+  tags: Tag[];
   trigger: ReactElement;
 }) {
   const [open, setOpen] = useState(false);
@@ -230,6 +236,39 @@ export function TaskFormDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {tags.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium">Tags</span>
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tags">
+                {tags.map((tag) => {
+                  const selected = values.tagIds.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setValues((prev) => ({
+                          ...prev,
+                          tagIds: selected
+                            ? prev.tagIds.filter((id) => id !== tag.id)
+                            : [...prev.tagIds, tag.id],
+                        }))
+                      }
+                    >
+                      <Badge
+                        variant={selected ? "default" : "secondary"}
+                        className={cn("cursor-pointer transition-soft", !selected && "opacity-60")}
+                      >
+                        {tag.name}
+                      </Badge>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
