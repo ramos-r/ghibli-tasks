@@ -22,6 +22,9 @@ model User {
   updatedAt       DateTime   @updatedAt
   username        String?
   displayUsername String?
+  notifyOverdue   Boolean    @default(true) @map("notify_overdue")
+  notifyDueSoon   Boolean    @default(true) @map("notify_due_soon")
+  notifyReminders Boolean    @default(true) @map("notify_reminders")
   sessions        Session[]
   accounts        Account[]
   tasks           Task[]

@@ -1,4 +1,5 @@
 import { authClient } from "@/lib/auth-client";
+import type { ChangePasswordInput } from "@/lib/validations/settings";
 import type { UpdateProfileInput } from "@/lib/validations/profile";
 import type { AuthResult } from "@/services/auth";
 
@@ -13,4 +14,18 @@ export async function updateProfile(input: UpdateProfileInput): Promise<AuthResu
   }
 
   return { success: true, message: "Profile updated." };
+}
+
+export async function changePassword(input: ChangePasswordInput): Promise<AuthResult> {
+  const { error } = await authClient.changePassword({
+    currentPassword: input.currentPassword,
+    newPassword: input.newPassword,
+    revokeOtherSessions: true,
+  });
+
+  if (error) {
+    return { success: false, message: error.message ?? "Could not change your password." };
+  }
+
+  return { success: true, message: "Password changed." };
 }
