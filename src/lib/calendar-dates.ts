@@ -48,7 +48,12 @@ export function getMonthGridDays(anchor: Date): Date[] {
 }
 
 export function getWeekDays(anchor: Date): Date[] {
-  const weekStart = addUtcDays(anchor, -anchor.getUTCDay());
+  // Normalize first: if `anchor` carries a time-of-day (e.g. a raw `new
+  // Date()`), addUtcDays would preserve it and the computed boundary would
+  // leak partway into the following day, off-by-one including next week's
+  // first task in range queries built from these days.
+  const start = startOfUtcDay(anchor);
+  const weekStart = addUtcDays(start, -start.getUTCDay());
   return Array.from({ length: 7 }, (_, i) => addUtcDays(weekStart, i));
 }
 
