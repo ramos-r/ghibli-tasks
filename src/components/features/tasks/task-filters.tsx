@@ -53,8 +53,20 @@ export function TaskFilters({ categories, tags }: { categories: Category[]; tags
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const searchParam = searchParams.get("search") ?? "";
+  const [search, setSearch] = useState(searchParam);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Re-sync local state when the URL's search param changes from outside
+  // this component (e.g. arriving via a global-search result link) rather
+  // than from typing in this box — useState's initializer only runs once,
+  // so without this the input would keep showing stale text after such a
+  // navigation even though the list below is correctly filtered.
+  const [syncedSearchParam, setSyncedSearchParam] = useState(searchParam);
+  if (searchParam !== syncedSearchParam) {
+    setSyncedSearchParam(searchParam);
+    setSearch(searchParam);
+  }
 
   const activeTagIds = searchParams.get("tags")?.split(",").filter(Boolean) ?? [];
 
