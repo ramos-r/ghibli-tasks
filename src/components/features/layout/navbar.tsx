@@ -1,7 +1,7 @@
-import { BellIcon, SearchIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { MobileNav } from "@/components/features/layout/mobile-nav";
+import { NotificationsBell } from "@/components/features/layout/notifications-bell";
 import { UserMenu } from "@/components/features/layout/user-menu";
 
 export function Navbar() {
@@ -24,10 +24,7 @@ export function Navbar() {
       </div>
 
       <div className="ml-auto flex items-center gap-1.5">
-        {/* Notifications are implemented in Phase 12 — visual placeholder for now. */}
-        <Button variant="ghost" size="icon" aria-label="Notifications" disabled>
-          <BellIcon />
-        </Button>
+        <NotificationsBell />
         <UserMenu />
       </div>
     </header>

@@ -4,6 +4,7 @@ const taskInclude = {
   category: true,
   tags: true,
   subtasks: { orderBy: { order: "asc" } },
+  reminders: { orderBy: { remindAt: "asc" } },
 } as const;
 
 function startOfUtcDay(date: Date) {

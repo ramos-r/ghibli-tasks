@@ -17,13 +17,14 @@ export interface GetTasksOptions {
 }
 
 export type TaskWithRelations = Prisma.TaskGetPayload<{
-  include: { category: true; tags: true; subtasks: true };
+  include: { category: true; tags: true; subtasks: true; reminders: true };
 }>;
 
 const taskInclude = {
   category: true,
   tags: true,
   subtasks: { orderBy: { order: "asc" } },
+  reminders: { orderBy: { remindAt: "asc" } },
 } as const;
 
 function buildOrderBy(sort: TaskSortOption = "newest"): Prisma.TaskOrderByWithRelationInput[] {

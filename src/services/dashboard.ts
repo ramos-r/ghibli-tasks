@@ -50,7 +50,12 @@ export async function getUpcomingDeadlines(userId: string, days = 7) {
       completed: false,
       dueDate: { gte: tomorrowStart, lt: rangeEnd },
     },
-    include: { category: true, tags: true, subtasks: { orderBy: { order: "asc" } } },
+    include: {
+      category: true,
+      tags: true,
+      subtasks: { orderBy: { order: "asc" } },
+      reminders: { orderBy: { remindAt: "asc" } },
+    },
     orderBy: { dueDate: "asc" },
     take: 5,
   });

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/session";
+import { createReminderSchema } from "@/lib/validations/reminder";
 import { createSubtaskSchema, updateSubtaskSchema } from "@/lib/validations/subtask";
 import { createTaskSchema, updateTaskSchema } from "@/lib/validations/task";
+import * as remindersService from "@/services/reminders";
 import * as subtasksService from "@/services/subtasks";
 import * as tasksService from "@/services/tasks";
 
@@ -211,6 +213,44 @@ export async function toggleSubtaskCompletedAction(id: string): Promise<ActionRe
 
     revalidatePath("/tasks");
     return { success: true, message: "" };
+  } catch (error) {
+    return toErrorResult(error);
+  }
+}
+
+export async function createReminderAction(input: unknown): Promise<ActionResult> {
+  try {
+    const user = await requireCurrentUser();
+    const parsed = createReminderSchema.safeParse(input);
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: parsed.error.issues[0]?.message ?? "Invalid reminder data.",
+      };
+    }
+
+    const created = await remindersService.createReminder(user.id, parsed.data);
+    if (!created) {
+      return { success: false, message: "Task not found." };
+    }
+
+    revalidatePath("/tasks");
+    return { success: true, message: "Reminder set." };
+  } catch (error) {
+    return toErrorResult(error);
+  }
+}
+
+export async function deleteReminderAction(id: string): Promise<ActionResult> {
+  try {
+    const user = await requireCurrentUser();
+    const deleted = await remindersService.deleteReminder(user.id, id);
+    if (!deleted) {
+      return { success: false, message: "Reminder not found." };
+    }
+
+    revalidatePath("/tasks");
+    return { success: true, message: "Reminder removed." };
   } catch (error) {
     return toErrorResult(error);
   }
