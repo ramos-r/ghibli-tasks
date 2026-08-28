@@ -14,6 +14,7 @@ export interface GetTasksOptions {
   categoryId?: string;
   tagIds?: string[];
   sort?: TaskSortOption;
+  limit?: number;
 }
 
 export type TaskWithRelations = Prisma.TaskGetPayload<{
@@ -44,7 +45,7 @@ function buildOrderBy(sort: TaskSortOption = "newest"): Prisma.TaskOrderByWithRe
 }
 
 export async function getTasks(userId: string, options: GetTasksOptions = {}) {
-  const { search, status = "active", priority, categoryId, tagIds, sort } = options;
+  const { search, status = "active", priority, categoryId, tagIds, sort, limit } = options;
 
   const where: Prisma.TaskWhereInput = {
     userId,
@@ -70,6 +71,7 @@ export async function getTasks(userId: string, options: GetTasksOptions = {}) {
     where,
     include: taskInclude,
     orderBy: buildOrderBy(sort),
+    ...(limit && { take: limit }),
   });
 }
 
