@@ -170,7 +170,7 @@ export async function toggleTaskPinned(userId: string, id: string) {
 export async function duplicateTask(userId: string, id: string) {
   const existing = await prisma.task.findFirst({
     where: { id, userId },
-    include: { tags: true },
+    include: { tags: true, subtasks: { orderBy: { order: "asc" } } },
   });
   if (!existing) return null;
 
@@ -183,6 +183,15 @@ export async function duplicateTask(userId: string, id: string) {
       categoryId: existing.categoryId,
       userId,
       tags: { connect: existing.tags.map((tag) => ({ id: tag.id })) },
+      // Subtasks copy over as fresh (uncompleted) todos, same as the
+      // duplicated task itself always starts uncompleted/unarchived/unpinned
+      // regardless of the original's state.
+      subtasks: {
+        create: existing.subtasks.map((subtask) => ({
+          title: subtask.title,
+          order: subtask.order,
+        })),
+      },
     },
     include: taskInclude,
   });
