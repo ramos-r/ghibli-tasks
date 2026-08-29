@@ -63,11 +63,14 @@ export function TaskFormDialog({
   categories,
   tags,
   trigger,
+  triggerIsNativeButton = true,
 }: {
   task?: TaskWithRelations;
   categories: Category[];
   tags: Tag[];
   trigger: ReactElement;
+  /** Set to false when `trigger` isn't a real <button> (e.g. a DropdownMenuItem) — see the a11y note on DialogTrigger below. */
+  triggerIsNativeButton?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<FormValues>(() => toFormValues(task));
@@ -127,7 +130,7 @@ export function TaskFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={trigger} />
+      <DialogTrigger nativeButton={triggerIsNativeButton} render={trigger} />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit task" : "New task"}</DialogTitle>

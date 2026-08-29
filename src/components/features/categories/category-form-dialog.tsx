@@ -37,9 +37,12 @@ function toFormValues(category?: Category): FormValues {
 export function CategoryFormDialog({
   category,
   trigger,
+  triggerIsNativeButton = true,
 }: {
   category?: Category;
   trigger: ReactElement;
+  /** Set to false when `trigger` isn't a real <button> (e.g. a DropdownMenuItem) — see the a11y note on DialogTrigger below. */
+  triggerIsNativeButton?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<FormValues>(() => toFormValues(category));
@@ -83,7 +86,7 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={trigger} />
+      <DialogTrigger nativeButton={triggerIsNativeButton} render={trigger} />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit category" : "New category"}</DialogTitle>
