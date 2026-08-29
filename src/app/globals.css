@@ -70,14 +70,20 @@
   --secondary: #cfd1af;
   --secondary-foreground: #23291d;
   --muted: #efe7d2;
-  --muted-foreground: #7a8268; /* Text secondary */
+  --muted-foreground: #647047; /* Text secondary — darkened from #7a8268 for WCAG AA (Phase 15 a11y pass): the original only hit 3.4:1 on background/card, below the 4.5:1 required for normal-size text, and this color is used for a lot of small body copy across the app. */
   --accent: #b3c190;
   --accent-foreground: #23291d;
-  --destructive: #c97a73; /* Danger */
+  /* Danger/success/warning are darkened from the original Soft Red/Moss
+     Green/Warm Amber (#c97a73/#8baa6a/#d6b36a) for WCAG AA (Phase 15 a11y
+     pass) — as text on their own /10-tinted badge and button backgrounds,
+     the originals only hit ~1.7-2.7:1 contrast, well under the 4.5:1 body
+     text needs. Same hue family, just deeper. --chart-5 keeps the original
+     Soft Red since chart coloring isn't a text-contrast concern. */
+  --destructive: #a94a41; /* Danger */
   --destructive-foreground: #23291d;
-  --success: #8baa6a;
+  --success: #576e3f;
   --success-foreground: #23291d;
-  --warning: #d6b36a;
+  --warning: #846524;
   --warning-foreground: #23291d;
   --border: #d8d7c3;
   --input: #d8d7c3;

@@ -198,6 +198,7 @@ export function TaskItem({
             task={task}
             categories={categories}
             tags={tags}
+            triggerIsNativeButton={false}
             trigger={
               <DropdownMenuItem closeOnClick={false}>
                 <PencilIcon />
@@ -220,6 +221,7 @@ export function TaskItem({
           <DropdownMenuSeparator />
           <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
             <DialogTrigger
+              nativeButton={false}
               render={
                 <DropdownMenuItem variant="destructive" closeOnClick={false}>
                   <Trash2Icon />

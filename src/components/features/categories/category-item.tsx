@@ -61,6 +61,7 @@ export function CategoryItem({ category }: { category: Category }) {
         <DropdownMenuContent align="end">
           <CategoryFormDialog
             category={category}
+            triggerIsNativeButton={false}
             trigger={
               <DropdownMenuItem closeOnClick={false}>
                 <PencilIcon />
@@ -70,6 +71,7 @@ export function CategoryItem({ category }: { category: Category }) {
           />
           <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
             <DialogTrigger
+              nativeButton={false}
               render={
                 <DropdownMenuItem variant="destructive" closeOnClick={false}>
                   <Trash2Icon />
