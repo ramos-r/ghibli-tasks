@@ -13,33 +13,46 @@ export interface NotificationItem {
 /** Reminders due for delivery, plus tasks that are overdue or due today —
  * everything a user would want surfaced by the notifications bell. There's
  * no push infrastructure here: this is computed fresh each time it's called
- * (on mount and whenever the bell is opened), not pushed to the client. */
+ * (on mount and whenever the bell is opened), not pushed to the client.
+ * Each category is skipped entirely if the user has turned it off in
+ * Settings (Phase 14). */
 export async function getNotifications(userId: string): Promise<NotificationItem[]> {
   const now = new Date();
   const todayStart = startOfUtcDay(now);
   const tomorrowStart = addUtcDays(todayStart, 1);
 
+  const preferences = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { notifyOverdue: true, notifyDueSoon: true, notifyReminders: true },
+  });
+
   const [dueReminders, overdueTasks, dueSoonTasks] = await Promise.all([
-    prisma.reminder.findMany({
-      where: { sent: false, remindAt: { lte: now }, task: { userId } },
-      include: { task: { select: { id: true, title: true } } },
-      orderBy: { remindAt: "asc" },
-    }),
-    prisma.task.findMany({
-      where: { userId, archived: false, completed: false, dueDate: { lt: todayStart } },
-      select: { id: true, title: true, dueDate: true },
-      orderBy: { dueDate: "asc" },
-    }),
-    prisma.task.findMany({
-      where: {
-        userId,
-        archived: false,
-        completed: false,
-        dueDate: { gte: todayStart, lt: tomorrowStart },
-      },
-      select: { id: true, title: true, dueDate: true },
-      orderBy: { dueDate: "asc" },
-    }),
+    preferences.notifyReminders
+      ? prisma.reminder.findMany({
+          where: { sent: false, remindAt: { lte: now }, task: { userId } },
+          include: { task: { select: { id: true, title: true } } },
+          orderBy: { remindAt: "asc" },
+        })
+      : [],
+    preferences.notifyOverdue
+      ? prisma.task.findMany({
+          where: { userId, archived: false, completed: false, dueDate: { lt: todayStart } },
+          select: { id: true, title: true, dueDate: true },
+          orderBy: { dueDate: "asc" },
+        })
+      : [],
+    preferences.notifyDueSoon
+      ? prisma.task.findMany({
+          where: {
+            userId,
+            archived: false,
+            completed: false,
+            dueDate: { gte: todayStart, lt: tomorrowStart },
+          },
+          select: { id: true, title: true, dueDate: true },
+          orderBy: { dueDate: "asc" },
+        })
+      : [],
   ]);
 
   return [
