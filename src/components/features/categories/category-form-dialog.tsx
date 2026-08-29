@@ -37,14 +37,20 @@ function toFormValues(category?: Category): FormValues {
 export function CategoryFormDialog({
   category,
   trigger,
-  triggerIsNativeButton = true,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: {
   category?: Category;
-  trigger: ReactElement;
-  /** Set to false when `trigger` isn't a real <button> (e.g. a DropdownMenuItem) — see the a11y note on DialogTrigger below. */
-  triggerIsNativeButton?: boolean;
+  /** Omit when the dialog is externally controlled via `open`/`onOpenChange`
+   * — e.g. when opened from a DropdownMenuItem, where the dialog needs to be
+   * rendered outside the menu so closing the menu doesn't unmount it. */
+  trigger?: ReactElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
   const [values, setValues] = useState<FormValues>(() => toFormValues(category));
   const [nameError, setNameError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,7 +92,7 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger nativeButton={triggerIsNativeButton} render={trigger} />
+      {trigger && <DialogTrigger render={trigger} />}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit category" : "New category"}</DialogTitle>

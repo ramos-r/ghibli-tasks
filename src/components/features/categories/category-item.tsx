@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -27,6 +26,7 @@ import { categoryIconComponents } from "@/lib/category-icons";
 
 export function CategoryItem({ category }: { category: Category }) {
   const [isPending, startTransition] = useTransition();
+  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const Icon =
@@ -59,43 +59,36 @@ export function CategoryItem({ category }: { category: Category }) {
           <MoreHorizontalIcon />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <CategoryFormDialog
-            category={category}
-            triggerIsNativeButton={false}
-            trigger={
-              <DropdownMenuItem closeOnClick={false}>
-                <PencilIcon />
-                Edit
-              </DropdownMenuItem>
-            }
-          />
-          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <DialogTrigger
-              nativeButton={false}
-              render={
-                <DropdownMenuItem variant="destructive" closeOnClick={false}>
-                  <Trash2Icon />
-                  Delete
-                </DropdownMenuItem>
-              }
-            />
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete this category?</DialogTitle>
-                <DialogDescription>
-                  &ldquo;{category.name}&rdquo; will be deleted. Tasks in this category will keep
-                  their other details, just without a category.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter showCloseButton>
-                <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-                  Delete
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <DropdownMenuItem onClick={() => setEditOpen(true)}>
+            <PencilIcon />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+            <Trash2Icon />
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Rendered outside DropdownMenuContent so closing the menu (which
+          unmounts its content) doesn't unmount these dialogs mid-open. */}
+      <CategoryFormDialog category={category} open={editOpen} onOpenChange={setEditOpen} />
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this category?</DialogTitle>
+            <DialogDescription>
+              &ldquo;{category.name}&rdquo; will be deleted. Tasks in this category will keep their
+              other details, just without a category.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton>
+            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
