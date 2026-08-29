@@ -31,7 +31,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -92,6 +91,7 @@ export function TaskItem({
   tags: Tag[];
 }) {
   const [isPending, startTransition] = useTransition();
+  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   function handleToggleCompleted() {
@@ -194,18 +194,10 @@ export function TaskItem({
           <MoreHorizontalIcon />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <TaskFormDialog
-            task={task}
-            categories={categories}
-            tags={tags}
-            triggerIsNativeButton={false}
-            trigger={
-              <DropdownMenuItem closeOnClick={false}>
-                <PencilIcon />
-                Edit
-              </DropdownMenuItem>
-            }
-          />
+          <DropdownMenuItem onClick={() => setEditOpen(true)}>
+            <PencilIcon />
+            Edit
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDuplicate}>
             <CopyIcon />
             Duplicate
@@ -219,32 +211,37 @@ export function TaskItem({
             {task.archived ? "Restore" : "Archive"}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <DialogTrigger
-              nativeButton={false}
-              render={
-                <DropdownMenuItem variant="destructive" closeOnClick={false}>
-                  <Trash2Icon />
-                  Delete
-                </DropdownMenuItem>
-              }
-            />
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete this task?</DialogTitle>
-                <DialogDescription>
-                  &ldquo;{task.title}&rdquo; will be permanently deleted. This can&apos;t be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter showCloseButton>
-                <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-                  Delete
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+            <Trash2Icon />
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Rendered outside DropdownMenuContent so closing the menu (which
+          unmounts its content) doesn't unmount these dialogs mid-open. */}
+      <TaskFormDialog
+        task={task}
+        categories={categories}
+        tags={tags}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this task?</DialogTitle>
+            <DialogDescription>
+              &ldquo;{task.title}&rdquo; will be permanently deleted. This can&apos;t be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton>
+            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
