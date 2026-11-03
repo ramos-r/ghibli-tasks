@@ -56,3 +56,7 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# documentation for AI assistant
+docs/README_FOR_CLAUDE.pdf
+docs/PROJECT_BRIEF.md
