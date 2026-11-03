@@ -8,6 +8,8 @@ A calm, cozy task manager inspired by Studio Ghibli. Plan your days with tasks, 
 
 ![Tasks](docs/screenshot-tasks.png)
 
+![Calendar](docs/screenshot-calendar.png)
+
 ## Features
 
 **Tasks**
