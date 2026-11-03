@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghibli Tasks
 
-## Getting Started
+A calm, cozy task manager inspired by Studio Ghibli. Plan your days with tasks, subtasks, categories, tags, reminders and a calendar, in a soft, minimal interface.
 
-First, run the development server:
+**Live demo:** https://ghibli-tasks.vercel.app (create a free account to try it)
+
+![Dashboard](docs/screenshot-dashboard.png)
+
+![Tasks](docs/screenshot-tasks.png)
+
+## Features
+
+**Tasks**
+- Create, edit and delete tasks with title, description, priority (low, medium, high), due date, category and tags
+- Mark tasks as complete, pin important ones and archive or restore them
+- Subtasks and reminders on each task
+- Search, filter by status, priority, category and tags, and sort the list
+
+**Calendar**
+- Month, week and day views with previous / next navigation
+
+**Dashboard**
+- Counters for tasks due today, completed and pending
+- Progress, upcoming deadlines, recent activity and your most productive weekday
+
+**Organization**
+- Categories with custom color and icon
+- Tags to group tasks across categories
+
+**Everyday details**
+- Global search with `Ctrl/⌘ + K` by title, description or tag
+- Notification bell for reminders, overdue tasks and tasks due today, with per-type preferences
+- Settings for profile, notification preferences and password
+- Email and password accounts; sign in with email or username
+- Responsive layout with mobile navigation
+
+## Tech stack
+
+| Area | Tools |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Server Actions), React 19, TypeScript |
+| UI | Tailwind CSS 4, shadcn/ui on Base UI, lucide-react, Sonner |
+| Auth | Better Auth (email and password) |
+| Database | PostgreSQL (Neon) with Prisma 7 and migrations |
+| Validation | Zod |
+| Testing | Vitest and Testing Library, Playwright (configured, with initial tests) |
+| Tooling | ESLint, Prettier |
+| Hosting | Vercel |
+
+## Architecture
+
+- Feature-based components in `src/components/features/`
+- Business logic and database access live in `src/services/`, never inside UI components
+- Pages stay thin and compose server components; mutations go through Server Actions
+- All input is validated with Zod
+
+## Getting started
+
+Requirements: Node.js 20+ and a PostgreSQL database (a free [Neon](https://neon.tech) project works well).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/ramos-r/ghibli-tasks.git
+cd ghibli-tasks
+npm install
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in `.env`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+| --- | --- |
+| `DATABASE_URL` | Pooled Postgres connection string, used at runtime |
+| `DIRECT_URL` | Direct (unpooled) connection string, used by Prisma migrations |
+| `BETTER_AUTH_SECRET` | Random secret, generate with `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | App URL, `http://localhost:3000` in development |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then apply the migrations and start the app:
 
-## Learn More
+```bash
+npx prisma migrate dev
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3000 and create an account.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Starts the development server |
+| `npm run build` | Creates the production build |
+| `npm run start` | Runs the production build |
+| `npm run lint` | Runs ESLint |
+| `npm run format` | Formats the code with Prettier |
+| `npm test` | Runs unit and component tests (Vitest) |
+| `npm run test:e2e` | Runs end-to-end tests (Playwright) |
 
-## Deploy on Vercel
+## Roadmap
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Planned, not built yet: recurring tasks, file attachments (schema is ready), dark mode, Pomodoro timer, email reminders and Google sign-in.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+Deployed on Vercel with a Neon database. Set the same environment variables from `.env.example` in the Vercel project settings.
