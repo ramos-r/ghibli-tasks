@@ -4,12 +4,6 @@ A calm, cozy task manager inspired by Studio Ghibli. Plan your days with tasks, 
 
 **Live demo:** https://ghibli-tasks.vercel.app (create a free account to try it)
 
-![Dashboard](docs/screenshot-dashboard.png)
-
-![Tasks](docs/screenshot-tasks.png)
-
-![Calendar](docs/screenshot-calendar.png)
-
 ## Features
 
 **Tasks**
@@ -18,12 +12,18 @@ A calm, cozy task manager inspired by Studio Ghibli. Plan your days with tasks, 
 - Subtasks and reminders on each task
 - Search, filter by status, priority, category and tags, and sort the list
 
+![Tasks](docs/screenshot-tasks.png)
+
 **Calendar**
 - Month, week and day views with previous / next navigation
+
+![Calendar](docs/screenshot-calendar.png)
 
 **Dashboard**
 - Counters for tasks due today, completed and pending
 - Progress, upcoming deadlines, recent activity and your most productive weekday
+
+![Dashboard](docs/screenshot-dashboard.png)
 
 **Organization**
 - Categories with custom color and icon
